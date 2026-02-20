@@ -37,6 +37,25 @@ canvas { display: block; }
 }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
+#rotate-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+#rotate-overlay .icon {
+  font-size: 64px; margin-bottom: 20px;
+  animation: rotate-hint 1.5s ease-in-out infinite;
+}
+#rotate-overlay .msg {
+  font-family: 'Arial Black', sans-serif; font-size: clamp(18px, 5vw, 28px);
+  color: #ffcc00; text-align: center; padding: 0 20px;
+}
+@keyframes rotate-hint {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+}
+
 #level-intro {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.9);
@@ -106,18 +125,50 @@ canvas { display: block; }
   <div class="tap-msg" id="go-tap">TAP TO CONTINUE</div>
 </div>
 
+<div id="rotate-overlay">
+  <div class="icon">📱</div>
+  <div class="msg">Rotate your device to landscape mode</div>
+</div>
+
 <canvas id="game"></canvas>
 
 <script>
 // ===== CANVAS =====
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+const rotateOverlay = document.getElementById('rotate-overlay');
+
+function isPortrait() {
+  return window.innerHeight > window.innerWidth && 'ontouchstart' in window;
+}
+
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  // Show rotate overlay on mobile portrait
+  rotateOverlay.style.display = isPortrait() ? 'flex' : 'none';
 }
 resize();
 window.addEventListener('resize', resize);
+if (screen.orientation) {
+  screen.orientation.addEventListener('change', resize);
+}
+
+// Try to lock landscape on first user interaction
+function tryLockLandscape() {
+  // Attempt fullscreen + landscape lock
+  const el = document.documentElement;
+  const requestFS = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if (requestFS) {
+    requestFS.call(el).then(() => {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    }).catch(() => {});
+  }
+}
+document.addEventListener('click', tryLockLandscape, { once: true });
+document.addEventListener('touchend', tryLockLandscape, { once: true });
 
 // ===== LEVEL DEFINITIONS =====
 const LEVELS = [
@@ -448,9 +499,9 @@ function update(dt) {
   // Move world
   distance += currentSpeed * dt;
 
-  // Jump
+  // Jump — strong enough to clear obstacles with forward scroll
   if (jumpJustPressed && car.grounded) {
-    car.vy = -400;
+    car.vy = -520;
     car.grounded = false;
     car.jumping = true;
   }
@@ -458,7 +509,7 @@ function update(dt) {
 
   // Gravity
   if (!car.grounded) {
-    car.vy += 1000 * dt;
+    car.vy += 820 * dt;
     car.y -= car.vy * dt;
     if (car.y <= 0) {
       car.y = 0;
