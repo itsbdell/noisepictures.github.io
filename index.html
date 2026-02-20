@@ -90,7 +90,7 @@ canvas { display: block; }
   <div class="controls-info">
     TAP / SPACE to JUMP<br>
     HOLD / SHIFT for BOOST<br>
-    Super easy — just jump &amp; boost!
+    Endless lives — just jump &amp; boost!
   </div>
 </div>
 
@@ -135,7 +135,7 @@ const LEVELS = [
     cloudColor: '#ffffff',
     sunColor: '#ffdd44',
     length: 6000,
-    speed: 280,
+    speed: 140,
     music: 'tropical',
   },
   {
@@ -152,7 +152,7 @@ const LEVELS = [
     cloudColor: '#ccccdd',
     sunColor: '#ccbbaa',
     length: 5500,
-    speed: 310,
+    speed: 155,
     music: 'airport',
   },
   {
@@ -169,7 +169,7 @@ const LEVELS = [
     cloudColor: '#555566',
     sunColor: '#ffaa66',
     length: 6500,
-    speed: 340,
+    speed: 170,
     music: 'city',
   }
 ];
@@ -186,7 +186,7 @@ let particles = [];
 let screenShake = 0;
 let levelTimer = 0;
 let totalTime = 0;
-let lives = 3;
+let lives = Infinity;
 let boostFuel = 100;
 let boosting = false;
 let invincibleTimer = 0;
@@ -276,12 +276,12 @@ function initLevel(lvlIndex) {
   };
 
   // Pre-generate obstacles
-  let nextObs = 400 + Math.random() * 300;
+  let nextObs = 600 + Math.random() * 400;
   while (nextObs < level.length - 200) {
     const type = level.obstacleTypes[Math.floor(Math.random() * level.obstacleTypes.length)];
     obstacles.push(createObstacle(type, nextObs));
-    // Easy spacing - lots of room between obstacles
-    nextObs += 350 + Math.random() * 400;
+    // Extra easy spacing for young players
+    nextObs += 500 + Math.random() * 500;
   }
 
   // Pre-generate decorations
@@ -296,26 +296,26 @@ function createObstacle(type, worldX) {
   const obs = { type, worldX, hit: false };
   switch (type) {
     case 'rock':
-      obs.w = 35; obs.h = 28; obs.color = '#887766'; obs.color2 = '#665544'; break;
+      obs.w = 50; obs.h = 40; obs.color = '#887766'; obs.color2 = '#665544'; break;
     case 'pothole':
-      obs.w = 50; obs.h = 8; obs.color = '#222222'; obs.color2 = '#111111'; obs.ground = true; break;
+      obs.w = 70; obs.h = 12; obs.color = '#222222'; obs.color2 = '#111111'; obs.ground = true; break;
     case 'chicken':
-      obs.w = 20; obs.h = 22; obs.color = '#ffffff'; obs.color2 = '#ff4444';
+      obs.w = 30; obs.h = 32; obs.color = '#ffffff'; obs.color2 = '#ff4444';
       obs.anim = Math.random() * Math.PI * 2; break;
     case 'fruit_stand':
-      obs.w = 50; obs.h = 40; obs.color = '#884422'; obs.color2 = '#ff6633'; break;
+      obs.w = 65; obs.h = 55; obs.color = '#884422'; obs.color2 = '#ff6633'; break;
     case 'luggage':
-      obs.w = 30; obs.h = 35; obs.color = '#3355aa'; obs.color2 = '#224488'; break;
+      obs.w = 45; obs.h = 50; obs.color = '#3355aa'; obs.color2 = '#224488'; break;
     case 'cart':
-      obs.w = 55; obs.h = 30; obs.color = '#888888'; obs.color2 = '#666666'; break;
+      obs.w = 75; obs.h = 42; obs.color = '#888888'; obs.color2 = '#666666'; break;
     case 'cone':
-      obs.w = 18; obs.h = 28; obs.color = '#ff6600'; obs.color2 = '#ffffff'; break;
+      obs.w = 28; obs.h = 40; obs.color = '#ff6600'; obs.color2 = '#ffffff'; break;
     case 'sign':
-      obs.w = 30; obs.h = 45; obs.color = '#ffcc00'; obs.color2 = '#333333'; break;
+      obs.w = 42; obs.h = 60; obs.color = '#ffcc00'; obs.color2 = '#333333'; break;
     case 'taxi':
-      obs.w = 60; obs.h = 30; obs.color = '#ffcc00'; obs.color2 = '#222222'; break;
+      obs.w = 80; obs.h = 42; obs.color = '#ffcc00'; obs.color2 = '#222222'; break;
     case 'hydrant':
-      obs.w = 18; obs.h = 30; obs.color = '#cc2200'; obs.color2 = '#991100'; break;
+      obs.w = 28; obs.h = 42; obs.color = '#cc2200'; obs.color2 = '#991100'; break;
     default:
       obs.w = 30; obs.h = 30; obs.color = '#888'; obs.color2 = '#666';
   }
@@ -376,7 +376,7 @@ function spawnFireSparks(x, y, scale) {
     particles.push({
       x: x + (Math.random() - 0.5) * 6,
       y: y + (Math.random() - 0.5) * 4,
-      vx: -(80 + Math.random() * 120) * scale,
+      vx: (80 + Math.random() * 120) * scale,
       vy: -(20 + Math.random() * 60) * scale,
       life: 0.2 + Math.random() * 0.3,
       maxLife: 0.2 + Math.random() * 0.3,
@@ -391,7 +391,7 @@ function spawnFireSparks(x, y, scale) {
     particles.push({
       x: x + (Math.random() - 0.5) * 10,
       y: y + (Math.random() - 0.5) * 6,
-      vx: -(100 + Math.random() * 150) * scale,
+      vx: (100 + Math.random() * 150) * scale,
       vy: -(30 + Math.random() * 80) * scale,
       life: 0.15 + Math.random() * 0.2,
       maxLife: 0.15 + Math.random() * 0.2,
@@ -441,8 +441,8 @@ function update(dt) {
   if (boosting) {
     const groundY = canvas.height * 0.72;
     const carBottom = groundY - car.y;
-    spawnFireSparks(car.x - 25, carBottom, 1);
-    spawnFireSparks(car.x - 20, carBottom + 2, 0.8);
+    spawnFireSparks(car.x + 25, carBottom, 1);
+    spawnFireSparks(car.x + 20, carBottom + 2, 0.8);
   }
 
   // Move world
@@ -450,7 +450,7 @@ function update(dt) {
 
   // Jump
   if (jumpJustPressed && car.grounded) {
-    car.vy = -520;
+    car.vy = -400;
     car.grounded = false;
     car.jumping = true;
   }
@@ -458,7 +458,7 @@ function update(dt) {
 
   // Gravity
   if (!car.grounded) {
-    car.vy += 1400 * dt;
+    car.vy += 1000 * dt;
     car.y -= car.vy * dt;
     if (car.y <= 0) {
       car.y = 0;
@@ -542,9 +542,9 @@ function update(dt) {
   if (car.grounded && currentSpeed > 100) {
     if (Math.random() < 0.3) {
       particles.push({
-        x: car.x - 30 + Math.random() * 5,
+        x: car.x + 30 + Math.random() * 5,
         y: groundY - 2,
-        vx: -(20 + Math.random() * 30),
+        vx: (20 + Math.random() * 30),
         vy: -(5 + Math.random() * 15),
         life: 0.3 + Math.random() * 0.2,
         maxLife: 0.5,
@@ -865,6 +865,14 @@ function drawDecorationFront(d, sx, h) {
 // ===== DRAW OBSTACLES =====
 function drawObstacle(obs, sx, groundY) {
   const t = performance.now() / 1000;
+  // Pulsing red danger glow beneath every obstacle
+  const glowPulse = 0.15 + Math.sin(t * 4) * 0.08;
+  ctx.globalAlpha = glowPulse;
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath();
+  ctx.ellipse(sx, groundY - 2, obs.w * 0.8 + 10, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
   switch (obs.type) {
     case 'rock':
       ctx.fillStyle = obs.color;
@@ -1046,19 +1054,36 @@ function drawObstacle(obs, sx, groundY) {
 }
 
 function drawWarningSign(x, y) {
-  const t = performance.now() / 300;
-  const alpha = 0.4 + Math.sin(t) * 0.3;
+  const t = performance.now() / 250;
+  const alpha = 0.6 + Math.sin(t) * 0.4;
+  // Red glow behind the sign
+  ctx.globalAlpha = alpha * 0.4;
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath();
+  ctx.arc(x, y - 4, 18, 0, Math.PI * 2);
+  ctx.fill();
+  // Yellow triangle - bigger
   ctx.globalAlpha = alpha;
   ctx.fillStyle = '#ffcc00';
   ctx.beginPath();
-  ctx.moveTo(x, y - 10);
-  ctx.lineTo(x - 8, y + 4);
-  ctx.lineTo(x + 8, y + 4);
+  ctx.moveTo(x, y - 16);
+  ctx.lineTo(x - 13, y + 6);
+  ctx.lineTo(x + 13, y + 6);
   ctx.fill();
+  // Red border
+  ctx.strokeStyle = '#ff3300';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 16);
+  ctx.lineTo(x - 13, y + 6);
+  ctx.lineTo(x + 13, y + 6);
+  ctx.closePath();
+  ctx.stroke();
+  // Exclamation mark
   ctx.fillStyle = '#000';
-  ctx.font = 'bold 9px monospace';
+  ctx.font = 'bold 14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('!', x, y + 2);
+  ctx.fillText('!', x, y + 3);
   ctx.globalAlpha = 1;
 }
 
@@ -1070,6 +1095,7 @@ function drawCar(cx, groundY, isBoosting) {
   ctx.save();
   ctx.translate(cx, y);
   ctx.rotate(car.rotation);
+  ctx.scale(-1, 1); // Flip car to face correct direction
 
   // Invincibility blink
   if (invincibleTimer > 0 && Math.floor(invincibleTimer * 10) % 2 === 0) {
@@ -1249,9 +1275,7 @@ function drawHUD(w, h) {
   // Lives - top left
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ff4444';
-  let livesText = '';
-  for (let i = 0; i < lives; i++) livesText += '\u2764 ';
-  ctx.fillText(livesText, pad, pad + fontSize + 8);
+  ctx.fillText('\u2764 \u221E', pad, pad + fontSize + 8);
 
   // Score - top right
   ctx.textAlign = 'right';
@@ -1380,7 +1404,7 @@ function showLevelIntro(lvlIndex) {
 function startGame() {
   document.getElementById('start-screen').style.display = 'none';
   currentLevel = 0;
-  lives = 3;
+  lives = Infinity;
   score = 0;
   totalTime = 0;
   showLevelIntro(0);
@@ -1401,7 +1425,7 @@ function handleScreenTap() {
   } else if (gameState === 'crashed') {
     document.getElementById('game-over-screen').style.display = 'none';
     // Retry same level
-    lives = 3;
+    lives = Infinity;
     score = Math.max(0, score - 100);
     showLevelIntro(currentLevel);
   } else if (gameState === 'levelComplete') {
