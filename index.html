@@ -90,7 +90,7 @@ canvas { display: block; }
   <div class="controls-info">
     TAP / SPACE to JUMP<br>
     HOLD / SHIFT for BOOST<br>
-    Super easy — just jump &amp; boost!
+    Endless lives — just jump &amp; boost!
   </div>
 </div>
 
@@ -186,7 +186,7 @@ let particles = [];
 let screenShake = 0;
 let levelTimer = 0;
 let totalTime = 0;
-let lives = 3;
+let lives = Infinity;
 let boostFuel = 100;
 let boosting = false;
 let invincibleTimer = 0;
@@ -1275,9 +1275,7 @@ function drawHUD(w, h) {
   // Lives - top left
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ff4444';
-  let livesText = '';
-  for (let i = 0; i < lives; i++) livesText += '\u2764 ';
-  ctx.fillText(livesText, pad, pad + fontSize + 8);
+  ctx.fillText('\u2764 \u221E', pad, pad + fontSize + 8);
 
   // Score - top right
   ctx.textAlign = 'right';
@@ -1406,7 +1404,7 @@ function showLevelIntro(lvlIndex) {
 function startGame() {
   document.getElementById('start-screen').style.display = 'none';
   currentLevel = 0;
-  lives = 3;
+  lives = Infinity;
   score = 0;
   totalTime = 0;
   showLevelIntro(0);
@@ -1427,7 +1425,7 @@ function handleScreenTap() {
   } else if (gameState === 'crashed') {
     document.getElementById('game-over-screen').style.display = 'none';
     // Retry same level
-    lives = 3;
+    lives = Infinity;
     score = Math.max(0, score - 100);
     showLevelIntro(currentLevel);
   } else if (gameState === 'levelComplete') {
